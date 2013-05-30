@@ -23,6 +23,58 @@ class FileParser
   end
 end
 
+module SearchSuggest
+  def self.find_longest_common_substring s1, s2
+    return 0 if s1.length == 0 || s2.length == 0
+    head1 = s1[0]
+    head2 = s2[0]
+    tail1 = s1[1..s1.length]
+    tail2 = s2[1..s2.length]
+
+    if head1 == head2
+      return 1 + find_longest_common_substring(tail1, tail2)
+    else
+      return [find_longest_common_substring(s1, tail2),
+              find_longest_common_substring(tail1, s2)].max
+    end
+  end
+
+  def self.best_suggestion query, suggestion1, suggestion2
+    length1 = find_longest_common_substring query, suggestion1
+    length2 = find_longest_common_substring query, suggestion2
+    return suggestion1 if length1 > length2
+    return suggestion2
+  end
+end
+
+describe SearchSuggest do
+  describe '#find_longest_common_substring' do
+    it 'gets right answer for trivial example' do
+      assert_equal 0, SearchSuggest.find_longest_common_substring('', '')
+    end
+    it 'gets the right answer for a more interesting example' do
+      assert_equal 2, SearchSuggest.find_longest_common_substring('nomm', 'num')
+    end
+    it 'gets 8 given remimance, remembrance' do
+      assert_equal 8, SearchSuggest.find_longest_common_substring('remimance', 'remembrance')
+    end
+    it 'gets 5 given imance, embrance' do
+      assert_equal 5, SearchSuggest.find_longest_common_substring('imance', 'embrance')
+    end
+  end
+
+  describe '#best_suggestion' do
+    describe 'given remimance with suggestions remembrance and reminiscence' do
+      before do
+        @result = SearchSuggest.best_suggestion 'remimance', 'remembrance', 'reminiscence'
+      end
+      it 'returns remembrance' do
+        assert_equal 'remembrance', @result
+      end
+    end
+  end
+end
+
 describe FileParser do
   describe '#read_input' do
     describe 'given a SAMPLE input file' do
